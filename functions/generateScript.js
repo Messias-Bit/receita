@@ -84,6 +84,20 @@ exports.handler = async function(event, context) {
             return chunks;
         }
 
+        function escapeSpecialChars(text) {
+            if (!text || typeof text !== 'string') {
+                return '';
+            }
+            return text
+                .replace(/`/g, '``')
+                .replace(/%/g, '`%')
+                .replace(/\^/g, '`^')
+                .replace(/!/g, '`!')
+                .replace(/#/g, '`#')
+                .replace(/\+/g, '`+')
+                .replace(/\\/g, '`\\');
+        }
+
         let scriptCode = `#Persistent\n`;
 scriptCode += `#SingleInstance Force\n`;
 scriptCode += `#UseHook\n`;
@@ -93,9 +107,25 @@ scriptCode += `global isPaused := 0\n`;
 scriptCode += `global sleepTime := 6000\n`;
 scriptCode += `global textIndex := 1\n`;
 scriptCode += `global waitingAnswer := 0\n`;
-scriptCode += `global username := ""\n\n`;
+scriptCode += `global username := ""\n`;
+scriptCode += `global configCheckAttempts := 0\n\n`;
 
-scriptCode += `IniRead, username, config.ini, Configuracao, Username, %A_Space%\n\n`;
+scriptCode += `UpdateStatusMessage(message) {\n`;
+scriptCode += `    message := SubStr(message, 1, 100)\n`;
+scriptCode += `    GuiControl,, StatusText, %message%\n`;
+scriptCode += `    SetTimer, ClearStatus, -4000\n`;
+scriptCode += `}\n\n`;
+
+scriptCode += `IniRead, username, config.ini, Configuracao, Username, %A_Space%\n`;
+scriptCode += `if (ErrorLevel) {\n`;
+scriptCode += `    username := ""\n`;
+scriptCode += `}\n`;
+scriptCode += `if (StrLen(username) > 25) {\n`;  
+scriptCode += `    MsgBox, Erro: Nome de usuário muito longo.\n`;
+scriptCode += `    username := ""\n`;
+scriptCode += `    Gosub, ShowConfigGUI\n`;
+scriptCode += `    return\n`;
+scriptCode += `}\n\n`;
 
 scriptCode += `Gui, New\n`;
 scriptCode += `Gui, +AlwaysOnTop\n`;
@@ -155,6 +185,12 @@ scriptCode += `Gui, 2:Show, w340 h190, Configuração\n`;
 scriptCode += `return\n\n`;
 
 scriptCode += `CheckConfigFile:\n`;
+scriptCode += `configCheckAttempts += 1\n`;
+scriptCode += `if (configCheckAttempts > 5) {\n`;
+scriptCode += `    SetTimer, CheckConfigFile, Off\n`;
+scriptCode += `    MsgBox, Erro: Não foi possível verificar o arquivo de configuração após várias tentativas.\n`;
+scriptCode += `    return\n`;
+scriptCode += `}\n`;
 scriptCode += `if (!FileExist("config.ini")) {\n`;
 scriptCode += `    SetTimer, CheckConfigFile, Off\n`;
 scriptCode += `    Gui, Hide\n`;
@@ -165,12 +201,20 @@ scriptCode += `return\n\n`;
 
 scriptCode += `SaveUsername:\n`;
 scriptCode += `Gui, 2:Submit, NoHide\n`;
-scriptCode += `if (UserNickname = "") {\n`;
-scriptCode += `    MsgBox, Por favor, digite seu nickname.\n`;
+scriptCode += `if (UserNickname = "" or UserNickname = " " or UserNickname ~= "[\\\\/:*?\"<>|]") {\n`;
+scriptCode += `    MsgBox, Por favor, digite um nickname válido sem caracteres especiais.\n`;
+scriptCode += `    return\n`;
+scriptCode += `}\n`;
+scriptCode += `if (StrLen(UserNickname) > 25) {\n`;  
+scriptCode += `    MsgBox, Erro: Nome de usuário muito longo. Máximo 25 caracteres.\n`;
 scriptCode += `    return\n`;
 scriptCode += `}\n`;
 scriptCode += `username := UserNickname\n`;
 scriptCode += `IniWrite, %username%, config.ini, Configuracao, Username\n`;
+scriptCode += `if (ErrorLevel) {\n`;
+scriptCode += `    MsgBox, Erro ao salvar configurações. Verifique as permissões da pasta.\n`;
+scriptCode += `    return\n`;
+scriptCode += `}\n`;
 scriptCode += `Gui, 2:Destroy\n`;
 scriptCode += `Gosub, ShowWarningGUI\n`;
 scriptCode += `return\n\n`;
@@ -189,17 +233,28 @@ scriptCode += `return\n\n`;
 
 scriptCode += `CloseWarning:\n`;
 scriptCode += `Gui, 4:Destroy\n`;
+scriptCode += `if (!FileExist("config.ini")) {\n`;
+scriptCode += `    MsgBox, Erro: Arquivo de configuração não encontrado.\n`;
+scriptCode += `    return\n`;
+scriptCode += `}\n`;
 scriptCode += `Gui, Show, w380 h320, AutoScript RCC\n`;
 scriptCode += `SetTimer, CheckConfigFile, 1000\n`;
 scriptCode += `return\n\n`;
 
 scriptCode += `UpdateSpeed:\n`;
 scriptCode += `Gui, Submit, NoHide\n`;
+scriptCode += `if (SpeedSlider < 6 || SpeedSlider > 8) {\n`;
+scriptCode += `    SpeedSlider := 6\n`;
+scriptCode += `}\n`;
 scriptCode += `sleepTime := SpeedSlider * 1000\n`;
 scriptCode += `GuiControl,, SpeedText, % "Intervalo: " . SpeedSlider . ".0 segundos"\n`;
 scriptCode += `return\n\n`;
 
 scriptCode += `StartScript:\n`;
+scriptCode += `if (username = "") {\n`;
+scriptCode += `    UpdateStatusMessage("Configure seu nickname primeiro!")\n`;
+scriptCode += `    return\n`;
+scriptCode += `}\n`;
 scriptCode += `GuiControl, Disable, StartButton\n`;
 scriptCode += `GuiControl, Enable, PauseButton\n`;
 scriptCode += `isPaused := 0\n`;
@@ -210,6 +265,9 @@ scriptCode += `SetTimer, SendNextText, -100\n`;
 scriptCode += `return\n\n`;
 
 scriptCode += `PauseScript:\n`;
+scriptCode += `if (waitingAnswer) {\n`;
+scriptCode += `    return\n`;
+scriptCode += `}\n`;
 scriptCode += `if (isPaused = 0) {\n`;
 scriptCode += `    isPaused := 1\n`;
 scriptCode += `    SetTimer, SendNextText, Off\n`;
@@ -227,7 +285,8 @@ scriptCode += `return\n\n`;
 
 scriptCode += `ShowQuestion:\n`;
 scriptCode += `WinGetPos, mainX, mainY,,, AutoScript RCC\n`;
-scriptCode += `if (ErrorLevel) {\n`;
+scriptCode += `if (ErrorLevel || mainX = "" || mainY = "") {\n`;
+scriptCode += `    MsgBox, Erro ao obter posição da janela.\n`;
 scriptCode += `    return\n`;
 scriptCode += `}\n`;
 scriptCode += `confirmX := mainX + 400\n`;
@@ -253,6 +312,7 @@ scriptCode += `return\n\n`;
 
 scriptCode += `AnswerNo:\n`;
 scriptCode += `Gui, 3:Hide\n`;
+scriptCode += `waitingAnswer := 0\n`;
 scriptCode += `UpdateStatusMessage("")\n`;
 scriptCode += `return\n\n`;
 
@@ -264,17 +324,15 @@ scriptCode += `ClearStatus:\n`;
 scriptCode += `GuiControl,, StatusText, % ""\n`;
 scriptCode += `return\n\n`;
 
-scriptCode += `UpdateStatusMessage(message) {\n`;
-scriptCode += `    GuiControl,, StatusText, %message%\n`;
-scriptCode += `    SetTimer, ClearStatus, -4000\n`;
-scriptCode += `}\n\n`;
-
-scriptCode += `SendNextText:\n`;
-scriptCode += `if (isPaused = 1) {\n`;
+scriptCode += `GuiClose:\n`;
+scriptCode += `MsgBox, 4, Confirmação, Deseja realmente fechar o script?\n`;
+scriptCode += `IfMsgBox Yes\n`;
+scriptCode += `{\n`;
 scriptCode += `    SetTimer, SendNextText, Off\n`;
-scriptCode += `    return\n`;
-scriptCode += `}\n\n`;
-
+scriptCode += `    SetTimer, CheckConfigFile, Off\n`;
+scriptCode += `    ExitApp\n`;
+scriptCode += `}\n`;
+scriptCode += `return\n\n`;
 
 const lines = inputText.split(/\n|\\n/);
 let processedLines = [];
@@ -316,8 +374,15 @@ lines.forEach(line => {
 let currentIndex = 1;  
 
 scriptCode += `SendNextText:\n`;
-scriptCode += `if (isPaused = 1) {\n`;
+scriptCode += `if (isPaused = 1 || username = "" || ErrorLevel) {\n`;
 scriptCode += `    SetTimer, SendNextText, Off\n`;
+scriptCode += `    return\n`;
+scriptCode += `}\n`;
+scriptCode += `if (textIndex > ${currentIndex - 1}) {\n`;
+scriptCode += `    SetTimer, SendNextText, Off\n`;
+scriptCode += `    GuiControl, Enable, StartButton\n`;
+scriptCode += `    GuiControl, Disable, PauseButton\n`;
+scriptCode += `    UpdateStatusMessage("Script finalizado")\n`;
 scriptCode += `    return\n`;
 scriptCode += `}\n\n`;
 
@@ -335,7 +400,7 @@ processedLines.forEach(line => {
                 scriptCode += `    Sleep, 1000\n`;
             }
 
-            scriptCode += `    Send, {Raw}${chunk}\n`;
+            scriptCode += `    Send, {Raw}${escapeSpecialChars(chunk)}\n`;
             scriptCode += `    Send, {Shift Down}{Enter}{Shift Up}\n`;
 
             if (chunk.includes('?')) {
