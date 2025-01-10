@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Script - RCC</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-KT6WCNY0M9"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-KT6WCNY0M9');
+    </script>
+</head>
+
+<body>
+
+    <div class="alert-message" id="generateAlert" style="display: none;">
+        Por favor, insira algum texto antes de gerar o código
+    </div>
+    <div class="alert-message" id="downloadAlert" style="display: none;">
+        Gere o código primeiro antes de fazer o download
+    </div>
+
+    <div class="modal" id="renameModal" style="display: none;">
+        <div class="modal-content">
+            <h2>Renomear Script</h2>
+            <div class="modal-input-container">
+                <input type="text" id="scriptName" placeholder="Nome do script" value="Script">
+                <span class="file-extension">.ahk</span>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn modal-btn" onclick="confirmDownload()">Baixar</button>
+                <button class="btn modal-btn" onclick="closeModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <header>
+        <h1 class="header-title">Auto Script - RCC</h1>
+    </header>
+
+    <main>
+        <div class="input-container">
+            <label for="inputText" class="input-label">Insira o script da aula abaixo:</label>
+            <textarea id="inputText" placeholder="Digite aqui o script..."></textarea>
+        </div>
+
+        <div class="button-container">
+            <button class="btn" id="generateBtn" onclick="generateCode()">Gerar Script</button>
+            <button class="btn" id="downloadBtn" onclick="downloadFile()">Baixar Script</button>
+        </div>
+
+        <div class="instructions-container">
+            <div class="instructions-content">
+                <section class="instruction-section">
+                    <div class="section-header">
+                        <i class="fas fa-download"></i>
+                        <h3>Requisitos Iniciais</h3>
+                    </div>
+                    <div class="requirement-box">
+                        <p><span class="highlight"></span> <a href="https://www.autohotkey.com/download/ahk-v2.exe" class="custom-link" target="_blank">
+                            <i class="fas fa-file-download"></i> Baixe o AutoHotkey </a>  e instale-o antes de usar</p>
+                    </div>
+                </section>
+
+                <section class="instruction-section">
+                    <div class="section-header">
+                        <i class="fas fa-list-ol"></i>
+                        <h3>Como Usar</h3>
+                    </div>
+                    <div class="steps-container">
+                        <div class="step-item">
+                            <span class="step-number">1</span>
+                            <p>Cole o texto da aula na caixa acima</p>
+                        </div>
+                        <div class="step-item">
+                            <span class="step-number">2</span>
+                            <p>Remova instruções ao aplicador e respostas das questões</p>
+                        </div>
+                        <div class="step-item">
+                            <span class="step-number">3</span>
+                            <p>Clique em "Gerar Script" para criar o script</p>
+                        </div>
+                        <div class="step-item">
+                            <span class="step-number">4</span>
+                            <p>Clique em "Baixar Script" para salvar o arquivo</p>
+                        </div>
+                        <div class="step-item">
+                            <span class="step-number">5</span>
+                            <p>Execute o arquivo para abrir o painel de controle</p>
+                        </div>
+                        <div class="step-item">
+                            <span class="step-number">6</span>
+                            <p>Com o jogo aberto, clique em "Iniciar" e selecione a caixa de texto do jogo</p>
+                        </div>
+                        <div class="step-item warning">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <p>Se não selecionar a tempo, recarregue e tente novamente</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="instruction-section">
+                    <div class="section-header">
+                        <i class="fas fa-star"></i>
+                        <h3>Funcionalidades</h3>
+                    </div>
+                    <div class="features-grid">
+                        <div class="feature-item">
+                            <i class="fas fa-question-circle"></i>
+                            <p>Detecção automática de perguntas</p>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-text-width"></i>
+                            <p>Processamento de textos com hífen e dois pontos</p>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-text-height"></i>
+                            <p>Quebra automática em 85 caracteres</p>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-sliders-h"></i>
+                            <p>Ajuste de velocidade</p>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-pause-circle"></i>
+                            <p>Sistema de pause/continue</p>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-font"></i>
+                            <p>Detecção automática de títulos</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="instruction-section">
+                    <div class="section-header">
+                        <i class="fas fa-gamepad"></i>
+                        <h3>Controles</h3>
+                    </div>
+                    <div class="controls-grid">
+                        <div class="control-item">
+                            <div class="control-header">
+                                <i class="fas fa-play"></i>
+                                <span>Iniciar</span>
+                            </div>
+                            <p>Começa após 5 segundos</p>
+                        </div>
+                        <div class="control-item">
+                            <div class="control-header">
+                                <i class="fas fa-pause"></i>
+                                <span>Pausar</span>
+                            </div>
+                            <p>Controla execução</p>
+                        </div>
+                        <div class="control-item">
+                            <div class="control-header">
+                                <i class="fas fa-redo"></i>
+                                <span>Recarregar</span>
+                            </div>
+                            <p>Reinicia o script</p>
+                        </div>
+                        <div class="control-item">
+                            <div class="control-header">
+                                <i class="fas fa-tachometer-alt"></i>
+                                <span>Velocidade</span>
+                            </div>
+                            <p>Ajusta intervalo (6-8s)</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>  
+    </main>
+
+    <footer>
+        <p class="footer-text">Desenvolvido por cralw16</p>
+    </footer>
+
+    <script src="js/script.js"></script>
+
+    <div id="toast" class="toast">
+        <div class="toast-content">
+            <i class="fas fa-check-circle"></i>
+            <div class="toast-message">Script gerado com sucesso!</div>
+        </div>
+    </div>
+
+</body>
+</html>
