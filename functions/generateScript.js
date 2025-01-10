@@ -104,20 +104,15 @@ scriptCode += `    GuiControl,, StatusText, % message\n`;
 scriptCode += `    SetTimer, ClearStatus, -4000\n`;
 scriptCode += `}\n\n`;
 
-scriptCode += `ShowConfigGUI:\n`;
-scriptCode += `Gui, 2:New\n`;
-scriptCode += `Gui, 2:+AlwaysOnTop\n`;
-scriptCode += `Gui, 2:Color, 1E293B, 243449\n`;
-scriptCode += `Gui, 2:Margin, 20, 20\n\n`;
-scriptCode += `Gui, 2:Font, s12 bold cE2E8F0\n`;
-scriptCode += `Gui, 2:Add, Text, x20 y20 w300 Center, Configuração Inicial\n\n`;
-scriptCode += `Gui, 2:Font, s10 normal cE2E8F0\n`;
-scriptCode += `Gui, 2:Add, Text, x20 y60 w300, Digite seu nickname:\n`;
-scriptCode += `Gui, 2:Add, Edit, x20 y90 w300 h30 vUserNickname\n\n`;
-scriptCode += `Gui, 2:Add, Button, x95 y140 w150 h30 gSaveUsername, Confirmar\n\n`;
-scriptCode += `Gui, 2:Show, w340 h190, Configuração\n`;
+scriptCode += `if (username = "" or username = "ERROR") {\n`;
+scriptCode += `    Gosub, ShowConfigGUI\n`;
+scriptCode += `} else {\n`;
+scriptCode += `    Gosub, ShowMainGUI\n`;
+scriptCode += `}\n\n`;
+
 scriptCode += `return\n\n`;
 
+scriptCode += `ShowMainGUI:\n`;
 scriptCode += `Gui, New\n`;
 scriptCode += `Gui, +AlwaysOnTop\n`;
 scriptCode += `Gui, Color, 1E293B, 243449\n`;
@@ -142,31 +137,24 @@ scriptCode += `Gui, Add, Text, x20 y250 w340 h30 vStatusText cFF4444 Center\n\n`
 scriptCode += `Gui, Font, s8\n`;
 scriptCode += `Gui, Add, Text, x20 y290 w340 Center c94A3B8, Desenvolvido por cralw16\n\n`;
 
-scriptCode += `if (username = "" or username = "ERROR") {\n`;
-scriptCode += `    Gosub, ShowConfigGUI\n`;
-scriptCode += `} else {\n`;
-scriptCode += `    Gui, Show, w380 h320, AutoScript RCC\n`;
-scriptCode += `}\n\n`;
-
-scriptCode += `Gui, 3:+AlwaysOnTop +ToolWindow -SysMenu\n`;
-scriptCode += `Gui, 3:Color, 1E293B, 243449\n`;
-scriptCode += `Gui, 3:Margin, 20, 20\n`;
-scriptCode += `Gui, 3:Font, s10 bold cE2E8F0\n`;
-scriptCode += `Gui, 3:Add, Text, x20 y20 w200 h30, O aluno respondeu a pergunta?\n`;
-scriptCode += `Gui, 3:Font, s10 normal\n`;
-scriptCode += `Gui, 3:Add, Button, x20 y60 w80 h30 gAnswerYes, Sim\n`;
-scriptCode += `Gui, 3:Add, Button, x110 y60 w80 h30 gAnswerNo, Não\n\n`;
-scriptCode += `SetTimer, CheckConfigFile, 1000\n`;
+scriptCode += `Gui, Show, w380 h320, AutoScript RCC\n`;
 scriptCode += `return\n\n`;
 
-scriptCode += `CheckConfigFile:\n`;
-scriptCode += `if (!FileExist("config.ini")) {\n`;
-scriptCode += `    SetTimer, CheckConfigFile, Off\n`;
-scriptCode += `    Gui, Hide\n`;
-scriptCode += `    username := ""\n`;
-scriptCode += `    Gosub, ShowConfigGUI\n`;
-scriptCode += `}\n`;
+scriptCode += `ShowConfigGUI:\n`;
+scriptCode += `Gui, 2:New\n`;
+scriptCode += `Gui, 2:+AlwaysOnTop\n`;
+scriptCode += `Gui, 2:Color, 1E293B, 243449\n`;
+scriptCode += `Gui, 2:Margin, 20, 20\n\n`;
+scriptCode += `Gui, 2:Font, s12 bold cE2E8F0\n`;
+scriptCode += `Gui, 2:Add, Text, x20 y20 w300 Center, Configuração Inicial\n\n`;
+scriptCode += `Gui, 2:Font, s10 normal cE2E8F0\n`;
+scriptCode += `Gui, 2:Add, Text, x20 y60 w300, Digite seu nickname:\n`;
+scriptCode += `Gui, 2:Add, Edit, x20 y90 w300 h30 vUserNickname\n\n`;
+scriptCode += `Gui, 2:Add, Button, x95 y140 w150 h30 gSaveUsername, Confirmar\n\n`;
+scriptCode += `Gui, 2:Show, w340 h190, Configuração\n`;
 scriptCode += `return\n\n`;
+
+scriptCode += `SetTimer, CheckConfigFile, 1000\n\n`;
 
 scriptCode += `SaveUsername:\n`;
 scriptCode += `Gui, 2:Submit, NoHide\n`;
@@ -177,7 +165,10 @@ scriptCode += `}\n`;
 scriptCode += `username := UserNickname\n`;
 scriptCode += `IniWrite, %username%, config.ini, Configuracao, Username\n`;
 scriptCode += `Gui, 2:Destroy\n`;
+scriptCode += `Gosub, ShowWarningGUI\n`; 
+scriptCode += `return\n\n`;
 
+scriptCode += `ShowWarningGUI:\n`; 
 scriptCode += `Gui, 4:New, +AlwaysOnTop\n`;
 scriptCode += `Gui, 4:Color, 1E293B, 243449\n`;
 scriptCode += `Gui, 4:Margin, 20, 20\n\n`;
@@ -191,6 +182,9 @@ scriptCode += `return\n\n`;
 
 scriptCode += `CloseWarning:\n`;
 scriptCode += `Gui, 4:Destroy\n`;
+scriptCode += `Gosub, ShowMainGUI\n`; 
+scriptCode += `return\n\n`;
+
 scriptCode += `Gui, Show, w380 h320, AutoScript RCC\n`;
 scriptCode += `SetTimer, CheckConfigFile, 1000\n`;
 scriptCode += `return\n\n`;
