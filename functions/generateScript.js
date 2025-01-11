@@ -213,149 +213,149 @@ exports.handler = async function(event, context) {
         scriptCode += `return\n\n`;
 
         const lines = inputText.split(/\n|\\n/);
-let processedLines = [];
+        let processedLines = [];
 
-lines.forEach(line => {
-    const trimmedLine = line.trim();
-    if (trimmedLine) {
-        const isAllCaps = /^[A-ZÁÉÍÓÚÂÊÎÔÛÃÕÀÈÌÒÙÇ\s]+$/.test(trimmedLine);
-        const isQuestion = trimmedLine.includes('?');
-        const isBulletPoint = trimmedLine.startsWith('-');
-        const hasColon = trimmedLine.includes(':');
+        lines.forEach(line => {
+            const trimmedLine = line.trim();
+            if (trimmedLine) {
+                const isAllCaps = /^[A-ZÁÉÍÓÚÂÊÎÔÛÃÕÀÈÌÒÙÇ\s]+$/.test(trimmedLine);
+                const isQuestion = trimmedLine.includes('?');
+                const isBulletPoint = trimmedLine.startsWith('-');
+                const hasColon = trimmedLine.includes(':');
 
-        if (isAllCaps || isQuestion || isBulletPoint || processedLines.length === 0) {
-            processedLines.push(trimmedLine);
-        } else if (hasColon && processedLines.length > 0) {
-            const lastLine = processedLines[processedLines.length - 1];
-            if (lastLine.includes(':')) {
-                processedLines.push(trimmedLine);
-            } else {
-                if (!lastLine.includes('?') && !lastLine.startsWith('-') && 
-                    !/^[A-ZÁÉÍÓÚÂÊÎÔÛÃÕÀÈÌÒÙÇ\s]+$/.test(lastLine)) {
-                    processedLines[processedLines.length - 1] += ' ' + trimmedLine;
-                } else {
+                if (isAllCaps || isQuestion || isBulletPoint || processedLines.length === 0) {
                     processedLines.push(trimmedLine);
+                } else if (hasColon && processedLines.length > 0) {
+                    const lastLine = processedLines[processedLines.length - 1];
+                    if (lastLine.includes(':')) {
+                        processedLines.push(trimmedLine);
+                    } else {
+                        if (!lastLine.includes('?') && !lastLine.startsWith('-') && 
+                            !/^[A-ZÁÉÍÓÚÂÊÎÔÛÃÕÀÈÌÒÙÇ\s]+$/.test(lastLine)) {
+                            processedLines[processedLines.length - 1] += ' ' + trimmedLine;
+                        } else {
+                            processedLines.push(trimmedLine);
+                        }
+                    }
+                } else {
+                    const lastLine = processedLines[processedLines.length - 1];
+                    if (!lastLine.includes('?') && !lastLine.startsWith('-') && 
+                        !/^[A-ZÁÉÍÓÚÂÊÎÔÛÃÕÀÈÌÒÙÇ\s]+$/.test(lastLine)) {
+                        processedLines[processedLines.length - 1] += ' ' + trimmedLine;
+                    } else {
+                        processedLines.push(trimmedLine);
+                    }
                 }
             }
+        });
+
+        let currentIndex = 1;
+
+        scriptCode += `SendNextText:\n`;
+        scriptCode += `if (isPaused = 1) {\n`;
+        scriptCode += `    SetTimer, SendNextText, Off\n`;
+        scriptCode += `    return\n`;
+        scriptCode += `}\n\n`;
+
+        processedLines.forEach(line => {
+            const chunks = splitTextIntoChunks(line, 85);
+            chunks.forEach(chunk => {
+                if (chunk.trim()) {
+                    scriptCode += `if (textIndex = ${currentIndex}) {\n`;
+                    scriptCode += `    if (isPaused = 1) {\n`;
+                    scriptCode += `        SetTimer, SendNextText, Off\n`;
+                    scriptCode += `        return\n`;
+                    scriptCode += `    }\n`;
+
+                    if (/^[A-ZÁÉÍÓÚÂÊÎÔÛÃÕÀÈÌÒÙÇ\s*]+$/.test(chunk)) {
+                        scriptCode += `    Sleep, 1000\n`;
+                    }
+
+                    scriptCode += `    Send, {Raw}${chunk}\n`;
+                    scriptCode += `    Send, {Shift Down}{Enter}{Shift Up}\n`;
+
+                    if (chunk.includes('?')) {
+                        scriptCode += `    UpdateStatusMessage("Script pausado, aguardando resposta do aluno...")\n`;
+                        scriptCode += `    waitingAnswer := ${currentIndex}\n`;
+                        scriptCode += `    isPaused := 1\n`;
+                        scriptCode += `    SetTimer, SendNextText, Off\n`;
+                        scriptCode += `    Gosub, ShowQuestion\n`;
+                        scriptCode += `    return\n`;
+                    } else {
+                        scriptCode += `    Sleep, %sleepTime%\n`;
+                        scriptCode += `    textIndex := ${currentIndex + 1}\n`;
+                        scriptCode += `    SetTimer, SendNextText, -100\n`;
+                    }
+                    scriptCode += `}\n\n`;
+                    currentIndex++;
+                }
+            });
+        });
+
+        function splitTextIntoChunks(text, chunkSize) {
+            const regex = new RegExp(`.{1,${chunkSize}}`, 'g');
+            return text.match(regex);
+        }
+
+        if (inputText.includes("{username}")) {
+            scriptCode += `; Código para renomear {username}\n`;
+            scriptCode += `if !FileExist("config.ini") {\n`;
+            scriptCode += `    Gui, 2: New\n`;
+            scriptCode += `    Gui, 2:+AlwaysOnTop\n`;
+            scriptCode += `    Gui, 2:Color, 1E293B, 243449\n`;
+            scriptCode += `    Gui, 2:Margin, 20, 20\n`;
+            scriptCode += `    Gui, 2:Font, s10 bold cE2E8F0\n`;
+            scriptCode += `    Gui, 2:Add, Text, x20 y20 w200 h30, Digite seu nickname (máx 25 caracteres):\n`;
+            scriptCode += `    Gui, 2:Font, s10 normal\n`;
+            scriptCode += `    Gui, 2:Add, Edit, x20 y60 w200 vNickname Limit25\n`;
+            scriptCode += `    Gui, 2:Add, Button, x20 y100 w80 h30 gSaveNickname, Confirmar\n`;
+            scriptCode += `    Gui, 2:Show, Center, Configuração de Nickname\n`;
+            scriptCode += `    return\n`;
+            scriptCode += `}\n`;
+
+            scriptCode += `SaveNickname:\n`;
+            scriptCode += `Gui, 2:Submit, NoHide\n`;
+            scriptCode += `IniWrite, %Nickname%, config.ini, User, Nickname\n`;
+            scriptCode += `Gui, 2:Destroy\n`;
+            scriptCode += `Gui, 4: New\n`;
+            scriptCode += `Gui, 4:+AlwaysOnTop\n`;
+            scriptCode += `Gui, 4:Color, 1E293B, 243449\n`;
+            scriptCode += `Gui, 4:Margin, 20, 20\n`;
+            scriptCode += `Gui, 4:Font, s10 bold cE2E8F0\n`;
+            scriptCode += `Gui, 4:Add, Text, x20 y20 w300 h30, Aviso: Foi criado um arquivo config.ini. Não o exclua!\n`;
+            scriptCode += `Gui, 4:Add, Button, x20 y60 w80 h30 gCloseWarning, Entendi\n`;
+            scriptCode += `Gui, 4:Show, Center, Aviso Importante\n`;
+            scriptCode += `return\n`;
+
+            scriptCode += `CloseWarning:\n`;
+            scriptCode += `Gui, 4:Destroy\n`;
+            scriptCode += `Gosub, StartScript\n`;
+            scriptCode += `return\n`;
+
+            scriptCode += `if !IniRead(Nickname, config.ini, User, Nickname) {\n`;
+            scriptCode += `    Gosub, SaveNickname\n`;
+            scriptCode += `}\n`;
+
+            scriptCode += `TransformText:\n`;
+            scriptCode += `IniRead, Nickname, config.ini, User, Nickname\n`;
+            scriptCode += `StringReplace, inputText, inputText, {username}, %Nickname%, All\n`;
+            scriptCode += `return\n`;
+
+            scriptCode += `Gosub, TransformText\n`;
         } else {
-            const lastLine = processedLines[processedLines.length - 1];
-            if (!lastLine.includes('?') && !lastLine.startsWith('-') && 
-                !/^[A-ZÁÉÍÓÚÂÊÎÔÛÃÕÀÈÌÒÙÇ\s]+$/.test(lastLine)) {
-                processedLines[processedLines.length - 1] += ' ' + trimmedLine;
-            } else {
-                processedLines.push(trimmedLine);
-            }
+            scriptCode += `Gosub, StartScript\n`;
         }
+
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ scriptCode })
+        };
+
+    } catch (error) {
+        console.error('Erro no processamento:', error);
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: "Erro ao processar o texto" })
+        };
     }
-});
-
-let currentIndex = 1;
-
-scriptCode += `SendNextText:\n`;
-scriptCode += `if (isPaused = 1) {\n`;
-scriptCode += `    SetTimer, SendNextText, Off\n`;
-scriptCode += `    return\n`;
-scriptCode += `}\n\n`;
-
-processedLines.forEach(line => {
-    const chunks = splitTextIntoChunks(line, 85);
-    chunks.forEach(chunk => {
-        if (chunk.trim()) {
-            scriptCode += `if (textIndex = ${currentIndex}) {\n`;
-            scriptCode += `    if (isPaused = 1) {\n`;
-            scriptCode += `        SetTimer, SendNextText, Off\n`;
-            scriptCode += `        return\n`;
-            scriptCode += `    }\n`;
-
-            if (/^[A-ZÁÉÍÓÚÂÊÎÔÛÃÕÀÈÌÒÙÇ\s*]+$/.test(chunk)) {
-                scriptCode += `    Sleep, 1000\n`;
-            }
-
-            scriptCode += `    Send, {Raw}${chunk}\n`;
-            scriptCode += `    Send, {Shift Down}{Enter}{Shift Up}\n`;
-
-            if (chunk.includes('?')) {
-                scriptCode += `    UpdateStatusMessage("Script pausado, aguardando resposta do aluno...")\n`;
-                scriptCode += `    waitingAnswer := ${currentIndex}\n`;
-                scriptCode += `    isPaused := 1\n`;
-                scriptCode += `    SetTimer, SendNextText, Off\n`;
-                scriptCode += `    Gosub, ShowQuestion\n`;
-                scriptCode += `    return\n`;
-            } else {
-                scriptCode += `    Sleep, %sleepTime%\n`;
-                scriptCode += `    textIndex := ${currentIndex + 1}\n`;
-                scriptCode += `    SetTimer, SendNextText, -100\n`;
-            }
-            scriptCode += `}\n\n`;
-            currentIndex++;
-        }
-    });
-});
-
-function splitTextIntoChunks(text, chunkSize) {
-    const regex = new RegExp(`.{1,${chunkSize}}`, 'g');
-    return text.match(regex);
-}
-
-if (inputText.includes("{username}")) {
-    scriptCode += `; Código para renomear {username}\n`;
-    scriptCode += `if !FileExist("config.ini") {\n`;
-    scriptCode += `    Gui, 2: New\n`;
-    scriptCode += `    Gui, 2:+AlwaysOnTop\n`;
-    scriptCode += `    Gui, 2:Color, 1E293B, 243449\n`;
-    scriptCode += `    Gui, 2:Margin, 20, 20\n`;
-    scriptCode += `    Gui, 2:Font, s10 bold cE2E8F0\n`;
-    scriptCode += `    Gui, 2:Add, Text, x20 y20 w200 h30, Digite seu nickname (máx 25 caracteres):\n`;
-    scriptCode += `    Gui, 2:Font, s10 normal\n`;
-    scriptCode += `    Gui, 2:Add, Edit, x20 y60 w200 vNickname Limit25\n`;
-    scriptCode += `    Gui, 2:Add, Button, x20 y100 w80 h30 gSaveNickname, Confirmar\n`;
-    scriptCode += `    Gui, 2:Show, Center, Configuração de Nickname\n`;
-    scriptCode += `    return\n`;
-    scriptCode += `}\n`;
-
-    scriptCode += `SaveNickname:\n`;
-    scriptCode += `Gui, 2:Submit, NoHide\n`;
-    scriptCode += `IniWrite, %Nickname%, config.ini, User, Nickname\n`;
-    scriptCode += `Gui, 2:Destroy\n`;
-    scriptCode += `Gui, 4: New\n`;
-    scriptCode += `Gui, 4:+AlwaysOnTop\n`;
-    scriptCode += `Gui, 4:Color, 1E293B, 243449\n`;
-    scriptCode += `Gui, 4:Margin, 20, 20\n`;
-    scriptCode += `Gui, 4:Font, s10 bold cE2E8F0\n`;
-    scriptCode += `Gui, 4:Add, Text, x20 y20 w300 h30, Aviso: Foi criado um arquivo config.ini. Não o exclua!\n`;
-    scriptCode += `Gui, 4:Add, Button, x20 y60 w80 h30 gCloseWarning, Entendi\n`;
-    scriptCode += `Gui, 4:Show, Center, Aviso Importante\n`;
-    scriptCode += `return\n`;
-
-    scriptCode += `CloseWarning:\n`;
-    scriptCode += `Gui, 4:Destroy\n`;
-    scriptCode += `Gosub, StartScript\n`;
-    scriptCode += `return\n`;
-
-    scriptCode += `if !IniRead(Nickname, config.ini, User, Nickname) {\n`;
-    scriptCode += `    Gosub, SaveNickname\n`;
-    scriptCode += `}\n`;
-
-    scriptCode += `TransformText:\n`;
-    scriptCode += `IniRead, Nickname, config.ini, User, Nickname\n`;
-    scriptCode += `StringReplace, inputText, inputText, {username}, %Nickname%, All\n`;
-    scriptCode += `return\n`;
-
-    scriptCode += `Gosub, TransformText\n`;
-} else {
-    scriptCode += `Gosub, StartScript\n`;
-}
-
-return {
-    statusCode: 200,
-    body: JSON.stringify({ scriptCode })
-};
-
-} catch (error) {
-    console.error('Erro no processamento:', error);
-    return {
-        statusCode: 500,
-        body: JSON.stringify({ error: "Erro ao processar o texto" })
-    };
-}
 };
