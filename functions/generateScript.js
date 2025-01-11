@@ -183,7 +183,11 @@ exports.handler = async function(event, context) {
         scriptCode += `isPaused := 1\n`;
         scriptCode += `SetTimer, SendNextText, Off\n`;
         scriptCode += `UpdateStatusMessage("Script pausado, aguardando resposta do aluno...")\n`;
-        scriptCode += `Gui, 3:Show, x%confirmX% y%mainY% w220 h100, Confirmação\n`;
+        scriptCode += `if (mainX != "" && mainY != "") {\n`;
+        scriptCode += `    Gui, 3:Show, x%confirmX% y%mainY% w220 h100, Confirmação\n`;
+        scriptCode += `} else {\n`;
+        scriptCode += `    MsgBox, Falha ao obter a posição da janela principal.\n`;
+        scriptCode += `}\n`;
         scriptCode += `return\n\n`;
 
         scriptCode += `AnswerYes:\n`;
@@ -209,7 +213,7 @@ exports.handler = async function(event, context) {
         scriptCode += `return\n\n`;
 
         scriptCode += `ClearStatus:\n`;
-        scriptCode += `GuiControl,, StatusText, % ""\n`;
+        scriptCode += `GuiControl,, StatusText, ""\n`;
         scriptCode += `return\n\n`;
 
         const lines = inputText.split(/\n|\\n/);
@@ -297,6 +301,7 @@ exports.handler = async function(event, context) {
             return text.match(regex);
         }
 
+        // Verifica se o texto contém {username}
         if (inputText.includes("{username}")) {
             scriptCode += `; Código para renomear {username}\n`;
             scriptCode += `if !FileExist("config.ini") {\n`;
@@ -359,3 +364,4 @@ exports.handler = async function(event, context) {
         };
     }
 };
+
