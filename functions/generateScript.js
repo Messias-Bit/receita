@@ -120,7 +120,7 @@ scriptCode += `SetTimer, CheckConfigFile, 1000\n`;
 scriptCode += `return\n\n`;
 
 scriptCode += `UpdateStatusMessage(message) {\n`;
-scriptCode += `    GuiControl,, StatusText, % message\n`;
+scriptCode += `    GuiControl, 1:, StatusText, % message\n`;
 scriptCode += `    SetTimer, ClearStatus, -4000\n`;
 scriptCode += `}\n\n`;
 
@@ -195,7 +195,7 @@ scriptCode += `return\n\n`;
 scriptCode += `SaveUsername:\n`;
 scriptCode += `Gui, 2:Submit, NoHide\n`;
 scriptCode += `if (UserNickname = "") {\n`;
-scriptCode += `    MsgBox, Por favor, digite seu nickname.\n`;
+scriptCode += `    MsgBox, 0, Aviso, Por favor digite seu nickname\n`;
 scriptCode += `    return\n`;
 scriptCode += `}\n`;
 scriptCode += `username := UserNickname\n`;
@@ -260,6 +260,10 @@ scriptCode += `return\n\n`;
 
 scriptCode += `ShowQuestion:\n`;
 scriptCode += `WinGetPos, mainX, mainY,,, AutoScript RCC\n`;
+scriptCode += `if (ErrorLevel) {\n`;
+scriptCode += `    mainX := A_ScreenWidth // 2\n`;
+scriptCode += `    mainY := A_ScreenHeight // 2\n`;
+scriptCode += `}\n`;
 scriptCode += `confirmX := mainX + 400\n`;
 scriptCode += `isPaused := 1\n`;
 scriptCode += `SetTimer, SendNextText, Off\n`;
