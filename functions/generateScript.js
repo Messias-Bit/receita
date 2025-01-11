@@ -365,7 +365,7 @@ scriptCode += '}\n\n';
 
 processedLines.forEach(line => {
     let processedLine = containsUsername(inputText) ? 
-        line.replace('{username}', '%" . userNickname . "%') : 
+        line.replace('{username}', '" . userNickname . "') :
         line;
     const chunks = splitTextIntoChunks(processedLine, 85);
     
