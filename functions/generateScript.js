@@ -301,7 +301,6 @@ exports.handler = async function(event, context) {
             return text.match(regex);
         }
 
-        // Verifica se o texto contém {username}
         if (inputText.includes("{username}")) {
             scriptCode += `; Código para renomear {username}\n`;
             scriptCode += `if !FileExist("config.ini") {\n`;
@@ -313,12 +312,12 @@ exports.handler = async function(event, context) {
             scriptCode += `    Gui, 2:Add, Text, x20 y20 w200 h30, Digite seu nickname (máx 25 caracteres):\n`;
             scriptCode += `    Gui, 2:Font, s10 normal\n`;
             scriptCode += `    Gui, 2:Add, Edit, x20 y60 w200 vNickname Limit25\n`;
-            scriptCode += `    Gui, 2:Add, Button, x20 y100 w80 h30 gSaveNickname, Confirmar\n`;
+            scriptCode += `    Gui, 2:Add, Button, x20 y100 w80 h30 gSaveNicknameConfirm, Confirmar\n`;
             scriptCode += `    Gui, 2:Show, Center, Configuração de Nickname\n`;
             scriptCode += `    return\n`;
             scriptCode += `}\n`;
 
-            scriptCode += `SaveNickname:\n`;
+            scriptCode += `SaveNicknameConfirm:\n`;
             scriptCode += `Gui, 2:Submit, NoHide\n`;
             scriptCode += `IniWrite, %Nickname%, config.ini, User, Nickname\n`;
             scriptCode += `Gui, 2:Destroy\n`;
@@ -337,8 +336,13 @@ exports.handler = async function(event, context) {
             scriptCode += `Gosub, StartScript\n`;
             scriptCode += `return\n`;
 
-            scriptCode += `if !IniRead(Nickname, config.ini, User, Nickname) {\n`;
+            scriptCode += `if !FileExist("config.ini") {\n`;
             scriptCode += `    Gosub, SaveNickname\n`;
+            scriptCode += `} else {\n`;
+            scriptCode += `    IniRead, Nickname, config.ini, User, Nickname\n`;
+            scriptCode += `    if (Nickname = "ERROR") {\n`;
+            scriptCode += `        Gosub, SaveNickname\n`;
+            scriptCode += `    }\n`;
             scriptCode += `}\n`;
 
             scriptCode += `TransformText:\n`;
