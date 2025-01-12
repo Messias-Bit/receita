@@ -95,130 +95,139 @@ exports.handler = async function(event, context) {
                 .replace(/\}/g, '\\}');
         }
 
-        let scriptCode = `#Persistent\n`;
-scriptCode += `#SingleInstance Force\n`;
-scriptCode += `#UseHook\n`;
-scriptCode += `SetWorkingDir %A_ScriptDir%\n\n`;
+        let scriptCode = "#Persistent\n";
+scriptCode += "#SingleInstance Force\n";
+scriptCode += "#UseHook\n";
+scriptCode += "SetWorkingDir %A_ScriptDir%\n\n";
 
-scriptCode += `global isPaused := 0\n`;
-scriptCode += `global sleepTime := 6000\n`;
-scriptCode += `global textIndex := 1\n`;
-scriptCode += `global waitingAnswer := 0\n`;
-scriptCode += `global totalLines := 0\n`;
+scriptCode += "FileCreateDir, %A_ScriptDir%\\AutoScriptConfig\n";
+scriptCode += "global configFolder := A_ScriptDir . \"\\AutoScriptConfig\"\n";
+scriptCode += "global configFile := configFolder . \"\\nickname_\" . A_ScriptName . \".ini\"\n";
 
-scriptCode += `UpdateStatusMessage(message) {\n`;
-scriptCode += `    GuiControl,, StatusText, %message%\n`;
-scriptCode += `    SetTimer ClearStatus, -4000\n`;
-scriptCode += `}\n\n`;
+scriptCode += "global isPaused := 0\n";
+scriptCode += "global sleepTime := 6000\n";
+scriptCode += "global textIndex := 1\n";
+scriptCode += "global waitingAnswer := 0\n";
+scriptCode += "global totalLines := 0\n";
 
-scriptCode += `Gui, New\n`;
-scriptCode += `Gui, +AlwaysOnTop\n`;
-scriptCode += `Gui, Color, 1E293B, 243449\n`;
-scriptCode += `Gui, Margin, 20, 20\n\n`;
+scriptCode += "UpdateStatusMessage(message) {\n";
+scriptCode += "    GuiControl,, StatusText, %message%\n";
+scriptCode += "    SetTimer ClearStatus, -4000\n";
+scriptCode += "}\n\n";
 
-scriptCode += `Gui, Font, s12 bold cE2E8F0\n`;
-scriptCode += `Gui, Add, Text, x20 y20 w340 h30 Center, AutoScript RCC - Controle\n\n`;
+scriptCode += "CreateMainGUI() {\n";
+scriptCode += "    Gui, New\n";
+scriptCode += "    Gui, +AlwaysOnTop\n";
+scriptCode += "    Gui, Color, 1E293B, 243449\n";
+scriptCode += "    Gui, Margin, 20, 20\n\n";
 
-scriptCode += `Gui, Font, s10 normal cE2E8F0\n`;
-scriptCode += `Gui, Add, GroupBox, x20 y60 w340 h180, Controles\n\n`;
+scriptCode += "    Gui, Font, s12 bold cE2E8F0\n";
+scriptCode += "    Gui, Add, Text, x20 y20 w340 h30 Center, AutoScript RCC - Controle\n\n";
 
-scriptCode += `Gui, Add, Text, x40 y90, Velocidade do Script:\n`;
-scriptCode += `Gui, Add, Slider, x40 y110 w300 vSpeedSlider gUpdateSpeed Range6-8, 6\n`;
-scriptCode += `Gui, Add, Text, x40 y140 w300 vSpeedText, Intervalo: 6.0 segundos\n\n`;
+scriptCode += "    Gui, Font, s10 normal cE2E8F0\n";
+scriptCode += "    Gui, Add, GroupBox, x20 y60 w340 h180, Controles\n\n";
 
-scriptCode += `Gui, Add, Button, x40 y170 w90 h30 gStartScript vStartButton, Iniciar\n`;
-scriptCode += `Gui, Add, Button, x145 y170 w90 h30 gPauseScript vPauseButton Disabled, Pausar\n`;
-scriptCode += `Gui, Add, Button, x250 y170 w90 h30 gReloadScript, Recarregar\n\n`;
+scriptCode += "    Gui, Add, Text, x40 y90, Velocidade do Script:\n";
+scriptCode += "    Gui, Add, Slider, x40 y110 w300 vSpeedSlider gUpdateSpeed Range6-8, 6\n";
+scriptCode += "    Gui, Add, Text, x40 y140 w300 vSpeedText, Intervalo: 6.0 segundos\n\n";
 
-scriptCode += `Gui, Font, s9 bold\n`;
-scriptCode += `Gui, Add, Text, x20 y250 w340 h30 vStatusText cFF4444 Center\n\n`;
+scriptCode += "    Gui, Add, Button, x40 y170 w90 h30 gStartScript vStartButton, Iniciar\n";
+scriptCode += "    Gui, Add, Button, x145 y170 w90 h30 gPauseScript vPauseButton Disabled, Pausar\n";
+scriptCode += "    Gui, Add, Button, x250 y170 w90 h30 gReloadScript, Recarregar\n\n";
 
-scriptCode += `Gui, Font, s8\n`;
-scriptCode += `Gui, Add, Text, x20 y290 w340 Center c94A3B8, Desenvolvido por cralw16\n\n`;
+scriptCode += "    Gui, Font, s9 bold\n";
+scriptCode += "    Gui, Add, Text, x20 y250 w340 h30 vStatusText cFF4444 Center\n\n";
 
-scriptCode += `Gui, 3:+AlwaysOnTop +ToolWindow -SysMenu\n`;
-scriptCode += `Gui, 3:Color, 1E293B, 243449\n`;
-scriptCode += `Gui, 3:Margin, 20, 20\n`;
-scriptCode += `Gui, 3:Font, s10 bold cE2E8F0\n`;
-scriptCode += `Gui, 3:Add, Text, x20 y20 w200 h30, O aluno respondeu a pergunta?\n`;
-scriptCode += `Gui, 3:Font, s10 normal\n`;
-scriptCode += `Gui, 3:Add, Button, x20 y60 w80 h30 gAnswerYes, Sim\n`;
-scriptCode += `Gui, 3:Add, Button, x110 y60 w80 h30 gAnswerNo, Não\n`;
+scriptCode += "    Gui, Font, s8\n";
+scriptCode += "    Gui, Add, Text, x20 y290 w340 Center c94A3B8, Desenvolvido por cralw16\n\n";
+scriptCode += "}\n\n";
 
-scriptCode += `Gui, Show, w380 h320, AutoScript RCC\n\n`;
+scriptCode += "ShowMainGUI() {\n";
+scriptCode += "    CreateMainGUI()\n";
+scriptCode += "    Gui, Show, w380 h320, AutoScript RCC\n";
+scriptCode += "}\n\n";
 
-scriptCode += `UpdateSpeed:\n`;
-scriptCode += `Gui, Submit, NoHide\n`;
-scriptCode += `sleepTime := SpeedSlider * 1000\n`;
-scriptCode += `GuiControl,, SpeedText, % "Intervalo: " . SpeedSlider . ".0 segundos"\n`;
-scriptCode += `return\n\n`;
+scriptCode += "Gui, 3:+AlwaysOnTop +ToolWindow -SysMenu\n";
+scriptCode += "Gui, 3:Color, 1E293B, 243449\n";
+scriptCode += "Gui, 3:Margin, 20, 20\n";
+scriptCode += "Gui, 3:Font, s10 bold cE2E8F0\n";
+scriptCode += "Gui, 3:Add, Text, x20 y20 w200 h30, O aluno respondeu a pergunta?\n";
+scriptCode += "Gui, 3:Font, s10 normal\n";
+scriptCode += "Gui, 3:Add, Button, x20 y60 w80 h30 gAnswerYes, Sim\n";
+scriptCode += "Gui, 3:Add, Button, x110 y60 w80 h30 gAnswerNo, Não\n\n";
 
-scriptCode += `StartScript:\n`;
-scriptCode += `GuiControl, Disable, StartButton\n`;
-scriptCode += `GuiControl, Enable, PauseButton\n`;
-scriptCode += `isPaused := 0\n`;
-scriptCode += `UpdateStatusMessage("Script será iniciado em 5 segundos...")\n`;
-scriptCode += `Sleep, 5000\n`;
-scriptCode += `UpdateStatusMessage("Script ativo")\n`;
-scriptCode += `SetTimer SendNextText, -100\n`;
-scriptCode += `return\n\n`;
+scriptCode += "UpdateSpeed:\n";
+scriptCode += "Gui, Submit, NoHide\n";
+scriptCode += "sleepTime := SpeedSlider * 1000\n";
+scriptCode += "GuiControl,, SpeedText, % \"Intervalo: \" . SpeedSlider . \".0 segundos\"\n";
+scriptCode += "return\n\n";
 
-scriptCode += `PauseScript:\n`;
-scriptCode += `if (isPaused = 0) {\n`;
-scriptCode += `    isPaused := 1\n`;
-scriptCode += `    SetTimer SendNextText, Off\n`;
-scriptCode += `    GuiControl,, PauseButton, Continuar\n`;
-scriptCode += `    UpdateStatusMessage("Script Pausado")\n`;
-scriptCode += `} else {\n`;
-scriptCode += `    UpdateStatusMessage("Script será reiniciado em 5 segundos...")\n`;
-scriptCode += `    Sleep, 5000\n`;
-scriptCode += `    isPaused := 0\n`;
-scriptCode += `    GuiControl,, PauseButton, Pausar\n`;
-scriptCode += `    UpdateStatusMessage("Script Ativo")\n`;
-scriptCode += `    SetTimer SendNextText, -100\n`;
-scriptCode += `}\n`;
-scriptCode += `return\n\n`;
+scriptCode += "StartScript:\n";
+scriptCode += "GuiControl, Disable, StartButton\n";
+scriptCode += "GuiControl, Enable, PauseButton\n";
+scriptCode += "isPaused := 0\n";
+scriptCode += "UpdateStatusMessage(\"Script será iniciado em 5 segundos...\")\n";
+scriptCode += "Sleep, 5000\n";
+scriptCode += "UpdateStatusMessage(\"Script ativo\")\n";
+scriptCode += "SetTimer SendNextText, -100\n";
+scriptCode += "return\n\n";
 
-scriptCode += `ShowQuestion:\n`;
-scriptCode += `WinGetPos, mainX, mainY,,, AutoScript RCC\n`;
-scriptCode += `confirmX := mainX + 400\n`;
-scriptCode += `isPaused := 1\n`;
-scriptCode += `SetTimer SendNextText, Off\n`;
-scriptCode += `UpdateStatusMessage("Script pausado, aguardando resposta do aluno...")\n`;
-scriptCode += `if (mainX != "" && mainY != "") {\n`;
-scriptCode += `    Gui, 3:Show, x%confirmX% y%mainY% w220 h100, Confirmação\n`;
-scriptCode += `} else {\n`;
-scriptCode += `    MsgBox, Falha ao obter a posição da janela principal.\n`;
-scriptCode += `}\n`;
-scriptCode += `return\n\n`;
+scriptCode += "PauseScript:\n";
+scriptCode += "if (isPaused = 0) {\n";
+scriptCode += "    isPaused := 1\n";
+scriptCode += "    SetTimer SendNextText, Off\n";
+scriptCode += "    GuiControl,, PauseButton, Continuar\n";
+scriptCode += "    UpdateStatusMessage(\"Script Pausado\")\n";
+scriptCode += "} else {\n";
+scriptCode += "    UpdateStatusMessage(\"Script será reiniciado em 5 segundos...\")\n";
+scriptCode += "    Sleep, 5000\n";
+scriptCode += "    isPaused := 0\n";
+scriptCode += "    GuiControl,, PauseButton, Pausar\n";
+scriptCode += "    UpdateStatusMessage(\"Script Ativo\")\n";
+scriptCode += "    SetTimer SendNextText, -100\n";
+scriptCode += "}\n";
+scriptCode += "return\n\n";
 
-scriptCode += `AnswerYes:\n`;
-scriptCode += `if (!waitingAnswer) {\n`;
-scriptCode += `    return\n`;
-scriptCode += `}\n`;
-scriptCode += `Gui, 3:Hide\n`;
-scriptCode += `UpdateStatusMessage("Script será reiniciado em 5 segundos...")\n`;
-scriptCode += `Sleep, 5000\n`;
-scriptCode += `UpdateStatusMessage("Script ativo")\n`;
-scriptCode += `isPaused := 0\n`;
-scriptCode += `textIndex := waitingAnswer + 1\n`;
-scriptCode += `waitingAnswer := 0\n`;
-scriptCode += `SetTimer SendNextText, -100\n`;
-scriptCode += `return\n\n`;
+scriptCode += "ShowQuestion:\n";
+scriptCode += "WinGetPos, mainX, mainY,,, AutoScript RCC\n";
+scriptCode += "confirmX := mainX + 400\n";
+scriptCode += "isPaused := 1\n";
+scriptCode += "SetTimer SendNextText, Off\n";
+scriptCode += "UpdateStatusMessage(\"Script pausado, aguardando resposta do aluno...\")\n";
+scriptCode += "if (mainX != \"\" && mainY != \"\") {\n";
+scriptCode += "    Gui, 3:Show, x%confirmX% y%mainY% w220 h100, Confirmação\n";
+scriptCode += "} else {\n";
+scriptCode += "    MsgBox, Falha ao obter a posição da janela principal.\n";
+scriptCode += "}\n";
+scriptCode += "return\n\n";
 
-scriptCode += `AnswerNo:\n`;
-scriptCode += `Gui, 3:Hide\n`;
-scriptCode += `isPaused := 1\n`;
-scriptCode += `UpdateStatusMessage("Resposta negativa - Script pausado")\n`;
-scriptCode += `return\n\n`;
+scriptCode += "AnswerYes:\n";
+scriptCode += "if (!waitingAnswer) {\n";
+scriptCode += "    return\n";
+scriptCode += "}\n";
+scriptCode += "Gui, 3:Hide\n";
+scriptCode += "UpdateStatusMessage(\"Script será reiniciado em 5 segundos...\")\n";
+scriptCode += "Sleep, 5000\n";
+scriptCode += "UpdateStatusMessage(\"Script ativo\")\n";
+scriptCode += "isPaused := 0\n";
+scriptCode += "textIndex := waitingAnswer + 1\n";
+scriptCode += "waitingAnswer := 0\n";
+scriptCode += "SetTimer SendNextText, -100\n";
+scriptCode += "return\n\n";
 
-scriptCode += `ReloadScript:\n`;
-scriptCode += `Reload\n`;
-scriptCode += `return\n\n`;
+scriptCode += "AnswerNo:\n";
+scriptCode += "Gui, 3:Hide\n";
+scriptCode += "isPaused := 1\n";
+scriptCode += "UpdateStatusMessage(\"Resposta negativa - Script pausado\")\n";
+scriptCode += "return\n\n";
 
-scriptCode += `ClearStatus:\n`;
-scriptCode += `GuiControl,, StatusText\n`;
-scriptCode += `return\n\n`;
+scriptCode += "ReloadScript:\n";
+scriptCode += "Reload\n";
+scriptCode += "return\n\n";
+
+scriptCode += "ClearStatus:\n";
+scriptCode += "GuiControl,, StatusText\n";
+scriptCode += "return\n\n";
 
 const lines = inputText.split(/\n|\\n/);
 let processedLines = [];
@@ -259,52 +268,52 @@ lines.forEach(line => {
 
 let currentIndex = 1;
 
-scriptCode += `totalLines := ${processedLines.length}\n\n`;
+scriptCode += "totalLines := " + processedLines.length + "\n\n";
 
-scriptCode += `SendNextText:\n`;
-scriptCode += `if (isPaused = 1) {\n`;
-scriptCode += `    SetTimer SendNextText, Off\n`;
-scriptCode += `    return\n`;
-scriptCode += `}\n\n`;
+scriptCode += "SendNextText:\n";
+scriptCode += "if (isPaused = 1) {\n";
+scriptCode += "    SetTimer SendNextText, Off\n";
+scriptCode += "    return\n";
+scriptCode += "}\n\n";
 
-scriptCode += `if (%textIndex% > %totalLines%) {\n`;
-scriptCode += `    UpdateStatusMessage("Script concluído")\n`;
-scriptCode += `    isPaused := 1\n`;
-scriptCode += `    GuiControl, Enable, StartButton\n`;
-scriptCode += `    GuiControl, Disable, PauseButton\n`;
-scriptCode += `    return\n`;
-scriptCode += `}\n\n`;
+scriptCode += "if (%textIndex% > %totalLines%) {\n";
+scriptCode += "    UpdateStatusMessage(\"Script concluído\")\n";
+scriptCode += "    isPaused := 1\n";
+scriptCode += "    GuiControl, Enable, StartButton\n";
+scriptCode += "    GuiControl, Disable, PauseButton\n";
+scriptCode += "    return\n";
+scriptCode += "}\n\n";
 
 processedLines.forEach(line => {
     const chunks = splitTextIntoChunks(line, 85);
     chunks.forEach(chunk => {
         if (chunk.trim()) {
-            scriptCode += `if (textIndex = ${currentIndex}) {\n`;
-            scriptCode += `    if (isPaused = 1) {\n`;
-            scriptCode += `        SetTimer SendNextText, Off\n`;
-            scriptCode += `        return\n`;
-            scriptCode += `    }\n`;
+            scriptCode += "if (textIndex = " + currentIndex + ") {\n";
+            scriptCode += "    if (isPaused = 1) {\n";
+            scriptCode += "        SetTimer SendNextText, Off\n";
+            scriptCode += "        return\n";
+            scriptCode += "    }\n";
 
             if (/^[A-ZÁÉÍÓÚÂÊÎÔÛÃÕÀÈÌÒÙÇ\s*]+$/.test(chunk)) {
-                scriptCode += `    Sleep, 1000\n`;
+                scriptCode += "    Sleep, 1000\n";
             }
 
-            scriptCode += `    Send, {Raw}${chunk}\n`;
-            scriptCode += `    Send, {Shift Down}{Enter}{Shift Up}\n`;
+            scriptCode += "    Send, {Raw}" + chunk + "\n";
+            scriptCode += "    Send, {Shift Down}{Enter}{Shift Up}\n";
 
             if (chunk.includes('?')) {
-                scriptCode += `    UpdateStatusMessage("Script pausado, aguardando resposta do aluno...")\n`;
-                scriptCode += `    waitingAnswer := ${currentIndex}\n`;
-                scriptCode += `    isPaused := 1\n`;
-                scriptCode += `    SetTimer SendNextText, Off\n`;
-                scriptCode += `    Gosub, ShowQuestion\n`;
-                scriptCode += `    return\n`;
+                scriptCode += "    UpdateStatusMessage(\"Script pausado, aguardando resposta do aluno...\")\n";
+                scriptCode += "    waitingAnswer := " + currentIndex + "\n";
+                scriptCode += "    isPaused := 1\n";
+                scriptCode += "    SetTimer SendNextText, Off\n";
+                scriptCode += "    Gosub, ShowQuestion\n";
+                scriptCode += "    return\n";
             } else {
-                scriptCode += `    Sleep, %sleepTime%\n`;
-                scriptCode += `    textIndex := ${currentIndex + 1}\n`;
-                scriptCode += `    SetTimer SendNextText, -100\n`;
+                scriptCode += "    Sleep, %sleepTime%\n";
+                scriptCode += "    textIndex := " + (currentIndex + 1) + "\n";
+                scriptCode += "    SetTimer SendNextText, -100\n";
             }
-            scriptCode += `}\n\n`;
+            scriptCode += "}\n\n";
             currentIndex++;
         }
     });
@@ -316,74 +325,67 @@ function splitTextIntoChunks(text, chunkSize) {
 }
 
 if (inputText.includes("{username}")) {
-    scriptCode = `IfNotExist, config.ini\n{\n    Gosub, ShowNicknameConfig\n}\n\n` + scriptCode;
+    scriptCode = `
+        IfNotExist, %configFile%
+        {
+            Gosub, ShowNicknameConfig
+        }
+        else 
+        {
+            Gosub, TransformText
+            ShowMainGUI()
+        }
+    ` + "\n" + scriptCode;
 
-    scriptCode += `ShowNicknameConfig:\n`;
-    scriptCode += `Gui, 2:New\n`;
-    scriptCode += `Gui, 2:+AlwaysOnTop\n`;
-    scriptCode += `Gui, 2:Color, 1E293B, 243449\n`;
-    scriptCode += `Gui, 2:Margin, 20, 20\n`;
-    scriptCode += `Gui, 2:Font, s10 bold cE2E8F0\n`;
-    scriptCode += `Gui, 2:Add, Text, x20 y20 w200 h30, Digite seu nickname (máx 25 caracteres):\n`;
-    scriptCode += `Gui, 2:Font, s10 normal\n`;
-    scriptCode += `Gui, 2:Add, Edit, x20 y60 w200 vNickname Limit25\n`;
-    scriptCode += `Gui, 2:Add, Button, x20 y100 w80 h30 gSaveNicknameConfirm, Confirmar\n`;
-    scriptCode += `Gui, 2:Show, Center, Configuração de Nickname\n`;
-    scriptCode += `return\n\n`;
+    scriptCode += "ShowNicknameConfig:\n";
+    scriptCode += "Gui, 2:New\n";
+    scriptCode += "Gui, 2:+AlwaysOnTop -MinimizeBox -SysMenu\n";
+    scriptCode += "Gui, 2:Color, 1E293B, 243449\n";
+    scriptCode += "Gui, 2:Margin, 20, 20\n";
+    scriptCode += "Gui, 2:Font, s10 bold cE2E8F0\n";
+    scriptCode += "Gui, 2:Add, Text, x20 y20 w200 h30, Digite seu nickname (máx 25 caracteres):\n";
+    scriptCode += "Gui, 2:Font, s10 normal\n";
+    scriptCode += "Gui, 2:Add, Edit, x20 y60 w200 vNickname Limit25\n";
+    scriptCode += "Gui, 2:Add, Button, x20 y100 w80 h30 gSaveNicknameConfirm, Confirmar\n";
+    scriptCode += "Gui, 2:Show, Center, Configuração de Nickname\n";
+    scriptCode += "return\n\n";
 
-    scriptCode += `SaveNicknameConfirm:\n`;
-    scriptCode += `Gui, 2:Submit, NoHide\n`;
-    scriptCode += `if (Nickname = "") {\n`;
-    scriptCode += `    MsgBox, Por favor, digite um nickname.\n`;
-    scriptCode += `    return\n`;
-    scriptCode += `}\n`;
-    scriptCode += `IniWrite, %Nickname%, config.ini, User, Nickname\n`;
-    scriptCode += `Gui, 2:Destroy\n`;
-    scriptCode += `Gosub, ShowConfigWarning\n`;
-    scriptCode += `return\n\n`;
+    scriptCode += "SaveNicknameConfirm:\n";
+    scriptCode += "Gui, 2:Submit, NoHide\n";
+    scriptCode += "if (Nickname = \"\") {\n";
+    scriptCode += "    MsgBox, Por favor, digite um nickname.\n";
+    scriptCode += "    return\n";
+    scriptCode += "}\n";
+    scriptCode += "IniWrite, %Nickname%, %configFile%, User, Nickname\n";
+    scriptCode += "Gui, 2:Destroy\n";
+    scriptCode += "Gosub, ShowConfigWarning\n";
+    scriptCode += "return\n\n";
 
-    scriptCode += `ShowConfigWarning:\n`;
-    scriptCode += `Gui, 4:New\n`;
-    scriptCode += `Gui, 4:+AlwaysOnTop\n`;
-    scriptCode += `Gui, 4:Color, 1E293B, 243449\n`;
-    scriptCode += `Gui, 4:Margin, 20, 20\n`;
-    scriptCode += `Gui, 4:Font, s10 bold cE2E8F0\n`;
-    scriptCode += `Gui, 4:Add, Text, x20 y20 w300 h30, Aviso: Foi criado um arquivo config.ini. Não o exclua!\n`;
-    scriptCode += `Gui, 4:Add, Button, x20 y60 w80 h30 gCloseWarning, Entendi\n`;
-    scriptCode += `Gui, 4:Show, Center, Aviso Importante\n`;
-    scriptCode += `return\n\n`;
+    scriptCode += "ShowConfigWarning:\n";
+    scriptCode += "Gui, 4:New\n";
+    scriptCode += "Gui, 4:+AlwaysOnTop\n";
+    scriptCode += "Gui, 4:Color, 1E293B, 243449\n";
+    scriptCode += "Gui, 4:Margin, 20, 20\n";
+    scriptCode += "Gui, 4:Font, s10 bold cE2E8F0\n";
+    scriptCode += "Gui, 4:Add, Text, x20 y20 w400 h60, Aviso: Foi criado um arquivo de configuração na pasta AutoScriptConfig.`nNão exclua a pasta nem os arquivos, pois eles contêm suas configurações de nickname!\n";
+    scriptCode += "Gui, 4:Add, Button, x160 y90 w80 h30 gCloseWarning, Entendi\n";
+    scriptCode += "Gui, 4:Show, w440 h140 Center, Aviso Importante\n";
+    scriptCode += "return\n\n";
 
-    scriptCode += `CloseWarning:\n`;
-    scriptCode += `Gui, 4:Destroy\n`;
-    scriptCode += `Gosub, StartScript\n`;
-    scriptCode += `return\n\n`;
+    scriptCode += "CloseWarning:\n";
+    scriptCode += "Gui, 4:Destroy\n";
+    scriptCode += "ShowMainGUI()\n";
+    scriptCode += "return\n\n";
 
-    scriptCode += `CheckAndLoadConfig:\n`;
-    scriptCode += `IfNotExist, config.ini\n`;
-    scriptCode += `{\n`;
-    scriptCode += `    Gosub, ShowNicknameConfig\n`;
-    scriptCode += `    return\n`;
-    scriptCode += `}\n`;
-    scriptCode += `IniRead, Nickname, config.ini, User, Nickname\n`;
-    scriptCode += `if (Nickname = "ERROR")\n`;
-    scriptCode += `{\n`;
-    scriptCode += `    Gosub, ShowNicknameConfig\n`;
-    scriptCode += `    return\n`;
-    scriptCode += `}\n`;
-    scriptCode += `return\n\n`;
-
-    scriptCode += `TransformText:\n`;
-    scriptCode += `Gosub, CheckAndLoadConfig\n`;
-    scriptCode += `StringReplace, outputText, inputText, {username}, %Nickname%, All\n`;
-    scriptCode += `inputText := outputText\n`;
-    scriptCode += `return\n\n`;
-
-    scriptCode += `Gosub, TransformText\n`;
+    scriptCode += "TransformText:\n";
+    scriptCode += "IniRead, Nickname, %configFile%, User, Nickname\n";
+    scriptCode += "if (Nickname != \"ERROR\") {\n";
+    scriptCode += "    StringReplace, inputText, inputText, {username}, %Nickname%, All\n";
+    scriptCode += "}\n";
+    scriptCode += "return\n\n";
 } else {
-    scriptCode += `Gosub, StartScript\n`;
+    scriptCode += "ShowMainGUI()\n";
 }
-
-
 
         return {
             statusCode: 200,
