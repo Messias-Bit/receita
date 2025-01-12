@@ -100,6 +100,13 @@ scriptCode += "#SingleInstance Force\n";
 scriptCode += "#UseHook\n";
 scriptCode += "SetWorkingDir %A_ScriptDir%\n\n";
 
+scriptCode += "global SpeedSlider\n";
+scriptCode += "global SpeedText\n";
+scriptCode += "global StatusText\n";
+scriptCode += "global StartButton\n";
+scriptCode += "global PauseButton\n";
+scriptCode += "global Nickname\n";
+
 scriptCode += "FileCreateDir, %A_ScriptDir%\\AutoScriptConfig\n";
 scriptCode += "global configFolder := A_ScriptDir . \"\\AutoScriptConfig\"\n";
 scriptCode += "global configFile := configFolder . \"\\nickname_\" . A_ScriptName . \".ini\"\n";
@@ -111,41 +118,38 @@ scriptCode += "global waitingAnswer := 0\n";
 scriptCode += "global totalLines := 0\n";
 
 scriptCode += "UpdateStatusMessage(message) {\n";
-scriptCode += "    GuiControl,, StatusText, %message%\n";
+scriptCode += "    GuiControl, 1:, StatusText, %message%\n";
 scriptCode += "    SetTimer ClearStatus, -4000\n";
 scriptCode += "}\n\n";
 
-scriptCode += "CreateMainGUI() {\n";
-scriptCode += "    Gui, New\n";
-scriptCode += "    Gui, +AlwaysOnTop\n";
-scriptCode += "    Gui, Color, 1E293B, 243449\n";
-scriptCode += "    Gui, Margin, 20, 20\n\n";
+scriptCode += "ShowMainGui:\n";
+scriptCode += "Gui, 1:New\n";
+scriptCode += "Gui, 1:+AlwaysOnTop\n";
+scriptCode += "Gui, 1:Color, 1E293B, 243449\n";
+scriptCode += "Gui, 1:Margin, 20, 20\n\n";
 
-scriptCode += "    Gui, Font, s12 bold cE2E8F0\n";
-scriptCode += "    Gui, Add, Text, x20 y20 w340 h30 Center, AutoScript RCC - Controle\n\n";
+scriptCode += "Gui, 1:Font, s12 bold cE2E8F0\n";
+scriptCode += "Gui, 1:Add, Text, x20 y20 w340 h30 Center, AutoScript RCC - Controle\n\n";
 
-scriptCode += "    Gui, Font, s10 normal cE2E8F0\n";
-scriptCode += "    Gui, Add, GroupBox, x20 y60 w340 h180, Controles\n\n";
+scriptCode += "Gui, 1:Font, s10 normal cE2E8F0\n";
+scriptCode += "Gui, 1:Add, GroupBox, x20 y60 w340 h180, Controles\n\n";
 
-scriptCode += "    Gui, Add, Text, x40 y90, Velocidade do Script:\n";
-scriptCode += "    Gui, Add, Slider, x40 y110 w300 vSpeedSlider gUpdateSpeed Range6-8, 6\n";
-scriptCode += "    Gui, Add, Text, x40 y140 w300 vSpeedText, Intervalo: 6.0 segundos\n\n";
+scriptCode += "Gui, 1:Add, Text, x40 y90, Velocidade do Script:\n";
+scriptCode += "Gui, 1:Add, Slider, x40 y110 w300 vSpeedSlider gUpdateSpeed Range6-8, 6\n";
+scriptCode += "Gui, 1:Add, Text, x40 y140 w300 vSpeedText, Intervalo: 6.0 segundos\n\n";
 
-scriptCode += "    Gui, Add, Button, x40 y170 w90 h30 gStartScript vStartButton, Iniciar\n";
-scriptCode += "    Gui, Add, Button, x145 y170 w90 h30 gPauseScript vPauseButton Disabled, Pausar\n";
-scriptCode += "    Gui, Add, Button, x250 y170 w90 h30 gReloadScript, Recarregar\n\n";
+scriptCode += "Gui, 1:Add, Button, x40 y170 w90 h30 gStartScript vStartButton, Iniciar\n";
+scriptCode += "Gui, 1:Add, Button, x145 y170 w90 h30 gPauseScript vPauseButton Disabled, Pausar\n";
+scriptCode += "Gui, 1:Add, Button, x250 y170 w90 h30 gReloadScript, Recarregar\n\n";
 
-scriptCode += "    Gui, Font, s9 bold\n";
-scriptCode += "    Gui, Add, Text, x20 y250 w340 h30 vStatusText cFF4444 Center\n\n";
+scriptCode += "Gui, 1:Font, s9 bold\n";
+scriptCode += "Gui, 1:Add, Text, x20 y250 w340 h30 vStatusText cFF4444 Center\n\n";
 
-scriptCode += "    Gui, Font, s8\n";
-scriptCode += "    Gui, Add, Text, x20 y290 w340 Center c94A3B8, Desenvolvido por cralw16\n\n";
-scriptCode += "}\n\n";
+scriptCode += "Gui, 1:Font, s8\n";
+scriptCode += "Gui, 1:Add, Text, x20 y290 w340 Center c94A3B8, Desenvolvido por cralw16\n\n";
 
-scriptCode += "ShowMainGUI() {\n";
-scriptCode += "    CreateMainGUI()\n";
-scriptCode += "    Gui, Show, w380 h320, AutoScript RCC\n";
-scriptCode += "}\n\n";
+scriptCode += "Gui, 1:Show, w380 h320, AutoScript RCC\n";
+scriptCode += "return\n\n";
 
 scriptCode += "Gui, 3:+AlwaysOnTop +ToolWindow -SysMenu\n";
 scriptCode += "Gui, 3:Color, 1E293B, 243449\n";
@@ -157,14 +161,14 @@ scriptCode += "Gui, 3:Add, Button, x20 y60 w80 h30 gAnswerYes, Sim\n";
 scriptCode += "Gui, 3:Add, Button, x110 y60 w80 h30 gAnswerNo, Não\n\n";
 
 scriptCode += "UpdateSpeed:\n";
-scriptCode += "Gui, Submit, NoHide\n";
+scriptCode += "Gui, 1:Submit, NoHide\n";
 scriptCode += "sleepTime := SpeedSlider * 1000\n";
-scriptCode += "GuiControl,, SpeedText, % \"Intervalo: \" . SpeedSlider . \".0 segundos\"\n";
+scriptCode += "GuiControl, 1:, SpeedText, % \"Intervalo: \" . SpeedSlider . \".0 segundos\"\n";
 scriptCode += "return\n\n";
 
 scriptCode += "StartScript:\n";
-scriptCode += "GuiControl, Disable, StartButton\n";
-scriptCode += "GuiControl, Enable, PauseButton\n";
+scriptCode += "GuiControl, 1:Disable, StartButton\n";
+scriptCode += "GuiControl, 1:Enable, PauseButton\n";
 scriptCode += "isPaused := 0\n";
 scriptCode += "UpdateStatusMessage(\"Script será iniciado em 5 segundos...\")\n";
 scriptCode += "Sleep, 5000\n";
@@ -176,13 +180,13 @@ scriptCode += "PauseScript:\n";
 scriptCode += "if (isPaused = 0) {\n";
 scriptCode += "    isPaused := 1\n";
 scriptCode += "    SetTimer SendNextText, Off\n";
-scriptCode += "    GuiControl,, PauseButton, Continuar\n";
+scriptCode += "    GuiControl, 1:, PauseButton, Continuar\n";
 scriptCode += "    UpdateStatusMessage(\"Script Pausado\")\n";
 scriptCode += "} else {\n";
 scriptCode += "    UpdateStatusMessage(\"Script será reiniciado em 5 segundos...\")\n";
 scriptCode += "    Sleep, 5000\n";
 scriptCode += "    isPaused := 0\n";
-scriptCode += "    GuiControl,, PauseButton, Pausar\n";
+scriptCode += "    GuiControl, 1:, PauseButton, Pausar\n";
 scriptCode += "    UpdateStatusMessage(\"Script Ativo\")\n";
 scriptCode += "    SetTimer SendNextText, -100\n";
 scriptCode += "}\n";
@@ -226,7 +230,7 @@ scriptCode += "Reload\n";
 scriptCode += "return\n\n";
 
 scriptCode += "ClearStatus:\n";
-scriptCode += "GuiControl,, StatusText\n";
+scriptCode += "GuiControl, 1:, StatusText\n";
 scriptCode += "return\n\n";
 
 const lines = inputText.split(/\n|\\n/);
@@ -276,11 +280,11 @@ scriptCode += "    SetTimer SendNextText, Off\n";
 scriptCode += "    return\n";
 scriptCode += "}\n\n";
 
-scriptCode += "if (%textIndex% > %totalLines%) {\n";
+scriptCode += "if (textIndex > totalLines) {\n";
 scriptCode += "    UpdateStatusMessage(\"Script concluído\")\n";
 scriptCode += "    isPaused := 1\n";
-scriptCode += "    GuiControl, Enable, StartButton\n";
-scriptCode += "    GuiControl, Disable, PauseButton\n";
+scriptCode += "    GuiControl, 1:Enable, StartButton\n";
+scriptCode += "    GuiControl, 1:Disable, PauseButton\n";
 scriptCode += "    return\n";
 scriptCode += "}\n\n";
 
@@ -333,7 +337,7 @@ if (inputText.includes("{username}")) {
         else 
         {
             Gosub, TransformText
-            ShowMainGUI()
+            Gosub, ShowMainGui
         }
     ` + "\n" + scriptCode;
 
@@ -367,14 +371,14 @@ if (inputText.includes("{username}")) {
     scriptCode += "Gui, 4:Color, 1E293B, 243449\n";
     scriptCode += "Gui, 4:Margin, 20, 20\n";
     scriptCode += "Gui, 4:Font, s10 bold cE2E8F0\n";
-    scriptCode += "Gui, 4:Add, Text, x20 y20 w400 h60, Aviso: Foi criado um arquivo de configuração na pasta AutoScriptConfig.`nNão exclua a pasta nem os arquivos, pois eles contêm suas configurações de nickname!\n";
+    scriptCode += "Gui, 4:Add, Text, x20 y20 w400 h60, Um arquivo de configuração foi criado na pasta AutoScriptConfig.`nNão o exclua; ele armazena seu nickname.\n";
     scriptCode += "Gui, 4:Add, Button, x160 y90 w80 h30 gCloseWarning, Entendi\n";
     scriptCode += "Gui, 4:Show, w440 h140 Center, Aviso Importante\n";
     scriptCode += "return\n\n";
 
     scriptCode += "CloseWarning:\n";
     scriptCode += "Gui, 4:Destroy\n";
-    scriptCode += "ShowMainGUI()\n";
+    scriptCode += "Gosub, ShowMainGui\n";
     scriptCode += "return\n\n";
 
     scriptCode += "TransformText:\n";
@@ -384,7 +388,7 @@ if (inputText.includes("{username}")) {
     scriptCode += "}\n";
     scriptCode += "return\n\n";
 } else {
-    scriptCode += "ShowMainGUI()\n";
+    scriptCode += "Gosub, ShowMainGui\n";
 }
 
         return {
